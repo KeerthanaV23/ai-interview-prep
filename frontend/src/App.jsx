@@ -14,10 +14,10 @@ export default function App() {
 
   const API_BASE = "http://127.0.0.1:8000/api";
 
-  const fetchQuestion = async () => {
+  const fetchQuestion = async (selectedTopic = topic, selectedDiff = difficulty) => {
     setFetchingQ(true);
     try {
-      const res = await axios.get(`${API_BASE}/get-question?topic=${topic}&difficulty=${difficulty}`);
+      const res = await axios.get(`${API_BASE}/get-question?topic=${selectedTopic}&difficulty=${selectedDiff}`);
       setQuestion(res.data.data);
       setCode(res.data.data.starter_code || '# Write your solution here');
       setAnalysis(null);
@@ -30,8 +30,20 @@ export default function App() {
   };
 
   useEffect(() => {
-    fetchQuestion();
+    fetchQuestion(topic, difficulty);
   }, []);
+
+  const handleTopicChange = (e) => {
+    const newTopic = e.target.value;
+    setTopic(newTopic);
+    fetchQuestion(newTopic, difficulty);
+  };
+
+  const handleDifficultyChange = (e) => {
+    const newDiff = e.target.value;
+    setDifficulty(newDiff);
+    fetchQuestion(topic, newDiff);
+  };
 
   const handleReview = async () => {
     if (!question) return;
@@ -59,8 +71,8 @@ export default function App() {
         <div className="flex items-center gap-3">
           <select 
             value={topic} 
-            onChange={(e) => setTopic(e.target.value)}
-            className="bg-slate-700 text-white text-sm px-3 py-1.5 rounded border border-slate-600 focus:outline-none"
+            onChange={handleTopicChange}
+            className="bg-slate-700 text-white text-sm px-3 py-1.5 rounded border border-slate-600 focus:outline-none cursor-pointer"
           >
             <option value="Arrays">Arrays & Hashing</option>
             <option value="Strings">Strings</option>
@@ -72,8 +84,8 @@ export default function App() {
 
           <select 
             value={difficulty} 
-            onChange={(e) => setDifficulty(e.target.value)}
-            className="bg-slate-700 text-white text-sm px-3 py-1.5 rounded border border-slate-600 focus:outline-none"
+            onChange={handleDifficultyChange}
+            className="bg-slate-700 text-white text-sm px-3 py-1.5 rounded border border-slate-600 focus:outline-none cursor-pointer"
           >
             <option value="Easy">Easy</option>
             <option value="Medium">Medium</option>
@@ -81,7 +93,7 @@ export default function App() {
           </select>
 
           <button 
-            onClick={fetchQuestion} 
+            onClick={() => fetchQuestion(topic, difficulty)} 
             disabled={fetchingQ}
             className="bg-indigo-600 hover:bg-indigo-700 px-4 py-1.5 rounded text-sm font-semibold transition"
           >
