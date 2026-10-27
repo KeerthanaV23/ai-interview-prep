@@ -5,10 +5,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Initialize Gemini Client
+# Initialize Gemini Client using google-genai SDK
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
-# Fast preset cache for instant loading
+# Preset cache for instant loading
 PRESET_QUESTIONS = {
     ("Arrays", "Easy"): {
         "title": "Two Sum",
@@ -28,7 +28,7 @@ PRESET_QUESTIONS = {
 }
 
 def generate_question(topic: str, difficulty: str):
-    # Check fast preset cache first
+    # Check preset cache first for instant response
     if (topic, difficulty) in PRESET_QUESTIONS:
         return PRESET_QUESTIONS[(topic, difficulty)]
 

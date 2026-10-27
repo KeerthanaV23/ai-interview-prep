@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from ai_service import analyze_code_with_gemini, generate_question
 
-app = FastAPI(title="AI Technical Interview Prep & Code Reviewer")
+app = FastAPI(title="AI Technical Interview Prep API")
 
 app.add_middleware(
     CORSMiddleware,

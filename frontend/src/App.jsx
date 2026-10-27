@@ -66,7 +66,7 @@ export default function App() {
     <div className="flex flex-col h-screen bg-slate-900 text-white font-sans">
       {/* Header Controls */}
       <header className="p-4 bg-slate-800 border-b border-slate-700 flex flex-wrap justify-between items-center gap-4">
-        <h1 className="text-xl font-bold text-blue-400">AI Technical Interview Prep & Code Reviewer</h1>
+        <h1 className="text-xl font-bold text-blue-400">AI Technical Interview Prep</h1>
         
         <div className="flex items-center gap-3">
           <select 
@@ -79,7 +79,6 @@ export default function App() {
             <option value="LinkedList">Linked Lists</option>
             <option value="Trees">Binary Trees</option>
             <option value="Dynamic Programming">Dynamic Programming</option>
-            <option value="SQL">SQL Queries</option>
           </select>
 
           <select 
@@ -133,8 +132,88 @@ export default function App() {
 
         {/* Middle: Code Editor Panel */}
         <div className="flex flex-col gap-2">
-          <div className="flex-1 border border-slate-700 rounded-md overflow-hidden relative">
+          <div className="flex-1 border border-slate-700 rounded-md overflow-hidden relative min-h-[350px]">
             <Editor
               height="100%"
               defaultLanguage="python"
-              theme="vs-
+              theme="vs-dark"
+              value={showOptimized && analysis ? analysis.optimized_code : code}
+              onChange={(val) => !showOptimized && setCode(val)}
+              options={{ readOnly: showOptimized }}
+            />
+          </div>
+
+          <div className="flex gap-2">
+            <button
+              onClick={handleReview}
+              disabled={loading}
+              className="flex-1 bg-green-600 hover:bg-green-700 py-2 rounded font-semibold text-white transition text-sm"
+            >
+              {loading ? "Analyzing Code..." : "Submit & Review Code"}
+            </button>
+
+            {analysis?.optimized_code && (
+              <button
+                onClick={() => setShowOptimized(!showOptimized)}
+                className="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded font-semibold text-xs text-blue-300 transition"
+              >
+                {showOptimized ? "Edit My Code" : "View AI Solution"}
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Right: AI Evaluation Results Panel */}
+        <div className="bg-slate-800 border border-slate-700 p-4 rounded-md overflow-y-auto">
+          <h2 className="text-lg font-bold mb-3 text-green-400">AI Performance Review</h2>
+          {analysis ? (
+            <div className="space-y-4 text-sm">
+              <div className="flex justify-between items-center bg-slate-700 p-3 rounded">
+                <span className="font-medium">Overall Score:</span>
+                <span className={`text-2xl font-bold ${analysis.score >= 80 ? 'text-green-400' : 'text-yellow-400'}`}>
+                  {analysis.score}/100
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-slate-700 p-2 rounded">
+                  <p className="text-xs text-gray-400">Time Complexity</p>
+                  <p className="font-semibold text-blue-300">{analysis.time_complexity}</p>
+                </div>
+                <div className="bg-slate-700 p-2 rounded">
+                  <p className="text-xs text-gray-400">Space Complexity</p>
+                  <p className="font-semibold text-blue-300">{analysis.space_complexity}</p>
+                </div>
+              </div>
+
+              <div>
+                <p className="font-semibold text-indigo-300 mb-1">Summary:</p>
+                <p className="text-gray-300 text-xs leading-relaxed">{analysis.summary}</p>
+              </div>
+
+              <div>
+                <p className="font-semibold text-green-300 mb-1">Pros:</p>
+                <ul className="list-disc pl-4 text-xs text-gray-300 space-y-1">
+                  {analysis.pros?.map((p, i) => <li key={i}>{p}</li>)}
+                </ul>
+              </div>
+
+              {analysis.cons?.length > 0 && (
+                <div>
+                  <p className="font-semibold text-red-300 mb-1">Areas to Improve:</p>
+                  <ul className="list-disc pl-4 text-xs text-gray-300 space-y-1">
+                    {analysis.cons?.map((c, i) => <li key={i}>{c}</li>)}
+                  </ul>
+                </div>
+              )}
+            </div>
+          ) : (
+            <p className="text-gray-400 text-xs leading-relaxed">
+              Write your solution in the Monaco editor and hit "Submit & Review Code" to get instant feedback and complexity analysis.
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
