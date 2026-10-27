@@ -7,21 +7,21 @@ load_dotenv()
 
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
-# Standard LeetCode interview question presets
+# Standard LeetCode interview question presets for instant loading
 PRESET_QUESTIONS = {
     ("Arrays", "Easy"): {
         "title": "Two Sum",
-        "description": "Given an array of integers `nums` and an integer `target`, return indices of the two numbers such that they add up to `target`.\n\nYou may assume that each input would have exactly one solution, and you may not use the same element twice.\n\nExample 1:\nInput: nums = [2,7,11,15], target = 9\nOutput: [0,1]\nExplanation: Because nums[0] + nums[1] == 9, we return [0, 1].",
+        "description": "Given an array of integers `nums` and an integer `target`, return indices of the two numbers such that they add up to `target`.\n\nYou may assume that each input would have exactly one solution, and you may not use the same element twice.\n\nExample 1:\nInput: nums = [2,7,11,15], target = 9\nOutput: [0,1]\nExplanation: Because nums[0] + nums[1] == 9, we return [0, 1].\n\nConstraints:\n- 2 <= nums.length <= 10^4\n- -10^9 <= nums[i] <= 10^9\n- -10^9 <= target <= 10^9",
         "starter_code": "def twoSum(nums, target):\n    # Write your solution here\n    pass"
     },
     ("Strings", "Easy"): {
         "title": "Valid Anagram",
-        "description": "Given two strings `s` and `t`, return `True` if `t` is an anagram of `s`, and `False` otherwise.\n\nAn Anagram is a word or phrase formed by rearranging the letters of a different word or phrase, typically using all the original letters exactly once.",
+        "description": "Given two strings `s` and `t`, return `True` if `t` is an anagram of `s`, and `False` otherwise.\n\nAn Anagram is a word or phrase formed by rearranging the letters of a different word or phrase, typically using all the original letters exactly once.\n\nExample 1:\nInput: s = \"anagram\", t = \"nagaram\"\nOutput: true\n\nExample 2:\nInput: s = \"rat\", t = \"car\"\nOutput: false",
         "starter_code": "def isAnagram(s, t):\n    # Write your solution here\n    pass"
     },
     ("Dynamic Programming", "Medium"): {
         "title": "Coin Change",
-        "description": "You are given an integer array `coins` representing coins of different denominations and an integer `amount` representing a total amount of money.\n\nReturn the fewest number of coins that you need to make up that amount. If that amount of money cannot be made up by any combination of the coins, return `-1`.",
+        "description": "You are given an integer array `coins` representing coins of different denominations and an integer `amount` representing a total amount of money.\n\nReturn the fewest number of coins that you need to make up that amount. If that amount of money cannot be made up by any combination of the coins, return `-1`.\n\nYou may assume that you have an infinite number of each kind of coin.\n\nExample 1:\nInput: coins = [1,2,5], amount = 11\nOutput: 3\nExplanation: 11 = 5 + 5 + 1",
         "starter_code": "def coinChange(coins, amount):\n    # Write your solution here\n    pass"
     },
     ("LinkedList", "Easy"): {
@@ -37,25 +37,27 @@ def generate_question(topic: str, difficulty: str):
         return PRESET_QUESTIONS[(topic, difficulty)]
 
     prompt = f"""
-    You are a technical interviewer at a top tech company. 
-    Generate a detailed LeetCode-style interview coding problem for:
+    You are a technical interviewer generating an authentic LeetCode interview question.
     Topic: {topic}
     Difficulty: {difficulty}
 
-    Return ONLY a raw JSON object (no markdown, no backticks) with:
-    - title: String (e.g. "Climbing Stairs")
-    - description: Comprehensive problem statement with input/output examples and constraints.
-    - starter_code: Python starter code with exact function signature.
+    Return a JSON object with:
+    - title: Exact LeetCode problem name string
+    - description: Full problem description with detailed Examples and Constraints
+    - starter_code: Python starter function with proper signature
     """
     
     try:
         response = client.models.generate_content(
             model='gemini-1.5-flash',
-            contents=prompt
+            contents=prompt,
+            config={
+                'response_mime_type': 'application/json',
+            }
         )
-        clean_text = response.text.replace('```json', '').replace('```', '').strip()
-        return json.loads(clean_text)
+        return json.loads(response.text)
     except Exception as e:
+        print("Gemini Generation Error:", e)
         return PRESET_QUESTIONS.get((topic, difficulty), {
             "title": "Two Sum",
             "description": "Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.",
@@ -69,23 +71,25 @@ def analyze_code_with_gemini(code: str, problem_statement: str, language: str = 
     Code submitted ({language}):
     {code}
 
-    Return ONLY a raw JSON object (no markdown backticks) with:
+    Return a JSON object with:
     - score: Integer (0-100)
     - time_complexity: String (e.g. O(N))
     - space_complexity: String (e.g. O(1))
     - summary: String
     - pros: List of strings
     - cons: List of strings
-    - optimized_code: Ideal solution in Python
+    - optimized_code: Ideal Python solution
     """
 
     try:
         response = client.models.generate_content(
             model='gemini-1.5-flash',
-            contents=prompt
+            contents=prompt,
+            config={
+                'response_mime_type': 'application/json',
+            }
         )
-        clean_text = response.text.replace('```json', '').replace('```', '').strip()
-        return json.loads(clean_text)
+        return json.loads(response.text)
     except Exception as e:
         return {
             "score": 80,
