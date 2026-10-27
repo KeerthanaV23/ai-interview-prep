@@ -3,9 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from ai_service import analyze_code_with_gemini, generate_question
 
-app = FastAPI(title="AI Interview Prep API")
+app = FastAPI(title="AI Technical Interview Prep & Code Reviewer")
 
-# Allow all origins for local testing
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -14,37 +13,31 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-class CodeReviewRequest(BaseModel):
+class CodeSubmission(BaseModel):
     code: str
     problem_statement: str
     language: str = "python"
 
+@app.get("/")
+def read_root():
+    return {"message": "AI Interview Prep Backend Service is Live!"}
+
 @app.get("/api/get-question")
-async def get_question(topic: str = "Data Structures", difficulty: str = "Medium"):
+def get_question(topic: str = "Arrays", difficulty: str = "Easy"):
     try:
         data = generate_question(topic, difficulty)
         return {"status": "success", "data": data}
     except Exception as e:
-        print("Error generating question:", str(e))
-        # Fallback question if API fails
-        return {
-            "status": "success",
-            "data": {
-                "title": "Two Sum Problem",
-                "description": "Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.\n\nExample:\nInput: nums = [2,7,11,15], target = 9\nOutput: [0,1]",
-                "starter_code": "def two_sum(nums, target):\n    # Write your logic here\n    pass"
-            }
-        }
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/review-code")
-async def review_code(payload: CodeReviewRequest):
+def review_code(submission: CodeSubmission):
     try:
-        result = analyze_code_with_gemini(
-            code=payload.code,
-            problem_statement=payload.problem_statement,
-            language=payload.language
+        analysis = analyze_code_with_gemini(
+            code=submission.code,
+            problem_statement=submission.problem_statement,
+            language=submission.language
         )
-        return {"status": "success", "data": result}
+        return {"status": "success", "data": analysis}
     except Exception as e:
-        print("Error reviewing code:", str(e))
         raise HTTPException(status_code=500, detail=str(e))
