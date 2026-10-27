@@ -10,9 +10,9 @@ export default function App() {
   const [analysis, setAnalysis] = useState(null);
   const [loading, setLoading] = useState(false);
   const [fetchingQ, setFetchingQ] = useState(false);
-  const [showOptimized, setShowOptimized] = useState(false);
-
-  const API_BASE = "[http://127.0.0.1:8000/api](http://127.0.0.1:8000/api)";
+const [showOptimized, setShowOptimized] = useState(false);
+  const API_BASE = "http://127.0.0.1:8000/api";
+  
 
   const fetchQuestion = async (selectedTopic = topic, selectedDiff = difficulty) => {
     setFetchingQ(true);
