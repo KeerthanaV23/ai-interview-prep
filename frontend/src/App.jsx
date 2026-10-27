@@ -10,16 +10,21 @@ export default function App() {
   const [analysis, setAnalysis] = useState(null);
   const [loading, setLoading] = useState(false);
   const [fetchingQ, setFetchingQ] = useState(false);
-const [showOptimized, setShowOptimized] = useState(false);
-  const API_BASE = "http://127.0.0.1:8000/api";
-  
+  const [showOptimized, setShowOptimized] = useState(false);
 
-  const fetchQuestion = async (selectedTopic = topic, selectedDiff = difficulty) => {
+  const API_BASE = "http://127.0.0.1:8000/api";
+
+  const fetchQuestion = async (selectedTopic, selectedDiff) => {
+    const currentTopic = selectedTopic || topic;
+    const currentDiff = selectedDiff || difficulty;
+    
     setFetchingQ(true);
     try {
-      const res = await axios.get(`${API_BASE}/get-question?topic=${selectedTopic}&difficulty=${selectedDiff}`);
-      setQuestion(res.data.data);
-      setCode(res.data.data.starter_code || '# Write your solution here');
+      const res = await axios.get(`${API_BASE}/get-question?topic=${encodeURIComponent(currentTopic)}&difficulty=${encodeURIComponent(currentDiff)}`);
+      if (res.data && res.data.data) {
+        setQuestion(res.data.data);
+        setCode(res.data.data.starter_code || '# Write your solution here');
+      }
       setAnalysis(null);
       setShowOptimized(false);
     } catch (err) {
@@ -30,7 +35,7 @@ const [showOptimized, setShowOptimized] = useState(false);
   };
 
   useEffect(() => {
-    fetchQuestion(topic, difficulty);
+    fetchQuestion('Arrays', 'Easy');
   }, []);
 
   const handleTopicChange = (e) => {
@@ -77,7 +82,7 @@ const [showOptimized, setShowOptimized] = useState(false);
             <option value="Arrays">Arrays & Hashing</option>
             <option value="Strings">Strings</option>
             <option value="LinkedList">Linked Lists</option>
-            <option value="Trees">Binary Trees</option>
+            <option value="Binary Trees">Binary Trees</option>
             <option value="Dynamic Programming">Dynamic Programming</option>
           </select>
 
@@ -120,7 +125,7 @@ const [showOptimized, setShowOptimized] = useState(false);
             
             {fetchingQ ? (
               <div className="text-xs text-indigo-400 font-semibold animate-pulse my-8 text-center">
-                Fetching problem statement using fast AI model...
+                Generating fresh {topic} problem using AI...
               </div>
             ) : (
               <p className="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">
