@@ -19,14 +19,20 @@ export default function App() {
     const currentDiff = selectedDiff || difficulty;
     
     setFetchingQ(true);
+    setQuestion(null); // Clear previous question UI immediately
+    setCode('');
+    setAnalysis(null);
+    setShowOptimized(false);
+
     try {
-      const res = await axios.get(`${API_BASE}/get-question?topic=${encodeURIComponent(currentTopic)}&difficulty=${encodeURIComponent(currentDiff)}`);
+      // Add timestamp query parameter to prevent browser cache
+      const res = await axios.get(
+        `${API_BASE}/get-question?topic=${encodeURIComponent(currentTopic)}&difficulty=${encodeURIComponent(currentDiff)}&t=${Date.now()}`
+      );
       if (res.data && res.data.data) {
         setQuestion(res.data.data);
         setCode(res.data.data.starter_code || '# Write your solution here');
       }
-      setAnalysis(null);
-      setShowOptimized(false);
     } catch (err) {
       alert("Failed to fetch question. Ensure FastAPI backend is running!");
     } finally {
@@ -69,7 +75,6 @@ export default function App() {
 
   return (
     <div className="flex flex-col h-screen bg-slate-900 text-white font-sans">
-      {/* Header Controls */}
       <header className="p-4 bg-slate-800 border-b border-slate-700 flex flex-wrap justify-between items-center gap-4">
         <h1 className="text-xl font-bold text-blue-400">AI Technical Interview Prep</h1>
         
@@ -99,21 +104,19 @@ export default function App() {
           <button 
             onClick={() => fetchQuestion(topic, difficulty)} 
             disabled={fetchingQ}
-            className="bg-indigo-600 hover:bg-indigo-700 px-4 py-1.5 rounded text-sm font-semibold transition"
+            className="bg-indigo-600 hover:bg-indigo-700 px-4 py-1.5 rounded text-sm font-semibold transition disabled:opacity-50"
           >
-            {fetchingQ ? "Loading..." : "Get New Problem"}
+            {fetchingQ ? "Generating..." : "Get New Problem"}
           </button>
         </div>
       </header>
 
-      {/* Main Workspace */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 flex-1 overflow-hidden">
-        {/* Left: Problem Statement Panel */}
         <div className="bg-slate-800 border border-slate-700 p-4 rounded-md overflow-y-auto flex flex-col justify-between">
           <div>
             <div className="flex justify-between items-center mb-2">
               <h2 className="text-lg font-bold text-indigo-300">
-                {fetchingQ ? "Fetching Problem..." : question ? question.title : "Select Topic"}
+                {fetchingQ ? "Generating Question..." : question ? question.title : "Select Topic"}
               </h2>
               <span className={`text-xs px-2 py-0.5 rounded font-bold ${
                 difficulty === 'Easy' ? 'bg-green-900 text-green-300' :
@@ -125,7 +128,7 @@ export default function App() {
             
             {fetchingQ ? (
               <div className="text-xs text-indigo-400 font-semibold animate-pulse my-8 text-center">
-                Generating fresh {topic} problem using AI...
+                Generating fresh unique problem using AI...
               </div>
             ) : (
               <p className="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">
@@ -135,7 +138,6 @@ export default function App() {
           </div>
         </div>
 
-        {/* Middle: Code Editor Panel */}
         <div className="flex flex-col gap-2">
           <div className="flex-1 border border-slate-700 rounded-md overflow-hidden relative min-h-[350px]">
             <Editor
@@ -151,8 +153,8 @@ export default function App() {
           <div className="flex gap-2">
             <button
               onClick={handleReview}
-              disabled={loading}
-              className="flex-1 bg-green-600 hover:bg-green-700 py-2 rounded font-semibold text-white transition text-sm"
+              disabled={loading || !question}
+              className="flex-1 bg-green-600 hover:bg-green-700 py-2 rounded font-semibold text-white transition text-sm disabled:opacity-50"
             >
               {loading ? "Analyzing Code..." : "Submit & Review Code"}
             </button>
@@ -168,7 +170,6 @@ export default function App() {
           </div>
         </div>
 
-        {/* Right: AI Evaluation Results Panel */}
         <div className="bg-slate-800 border border-slate-700 p-4 rounded-md overflow-y-auto">
           <h2 className="text-lg font-bold mb-3 text-green-400">AI Performance Review</h2>
           {analysis ? (
